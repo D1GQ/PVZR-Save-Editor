@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "PvZR Save Editor",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/launch.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "PvZR Save Editor (module)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pvzr_save_editor",
+            "env": { "PYTHONPATH": "${workspaceFolder}/src" },
+            "console": "integratedTerminal"
+        }
+    ]
+}
