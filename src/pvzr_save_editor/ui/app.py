@@ -5,7 +5,7 @@ import traceback
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
-from ..constants import APP_TITLE
+from ..constants import APP_TITLE, APP_VERSION, APP_CREDITS
 from ..savefile import try_load
 from .icon import apply_window_icon
 from .tabs import AchievementsTab, FieldsTab, PlantsTab, StoreTab
@@ -15,7 +15,7 @@ from .theme import Theme, apply_dark_theme
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title(APP_TITLE)
+        self.title(APP_TITLE + " " + APP_VERSION + ", by " + APP_CREDITS)
         self.geometry("1200x820")
         self.minsize(950, 620)
         apply_dark_theme(self)
