@@ -2,23 +2,6 @@
 
 Tkinter save editor for Plants vs. Zombies: Replanted profiles.
 
-## Layout
-
-```
-launch.py                     entry point for VS Code / PyInstaller
-run.bat                       run from source on Windows
-build_exe.bat                 build dist\PvZReplantedSaveEditor.exe
-src/pvzr_save_editor/
-    constants.py              app title, header size, profile version
-    binary.py                 Reader/Writer, PottedPlant, UserProfile
-    savefile.py               header, compression, load/save
-    enums.py                  id -> name tables (data)
-    meta.py                   labels, field groups, enum bindings (data)
-    metadata.py               loads enums/meta, exposes enum_for()/label_for()
-    ui/                       theme, icon, widgets, tabs, main window
-    assets/                   icon.png / icon.ico
-```
-
 ## Develop (VS Code)
 
 1. Open the folder, then `Python: Create Environment` (venv, `.venv`).
