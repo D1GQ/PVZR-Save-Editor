@@ -5,7 +5,7 @@ import sys
 import traceback
 
 if not getattr(sys, "frozen", False):
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def _report_crash():
@@ -25,7 +25,7 @@ def _report_crash():
 
 if __name__ == "__main__":
     try:
-        from pvzr_save_editor.ui.app import main
+        from src.ui.app import main
         main()
     except Exception:
         _report_crash()

@@ -1,5 +1,3 @@
-"""Window icon loading (works from source and from a PyInstaller bundle)."""
-
 import os
 import sys
 import tkinter as tk
@@ -7,15 +5,22 @@ import tkinter as tk
 from .theme import Theme
 
 
-# Assets live inside the package, so __file__ resolves correctly both when
-# running from source and inside a PyInstaller bundle (sys._MEIPASS).
-ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
+def _assets_dir():
+    """Directory containing icon.png / icon.ico, both frozen and from source."""
+    if getattr(sys, "frozen", False):
+        base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+    else:
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, "assets")
+
+
+ASSETS_DIR = _assets_dir()
 
 
 def _set_png_icon(root, path):
     img = tk.PhotoImage(file=path)
     root.iconphoto(True, img)
-    root._icon_ref = img  # keep a reference so Tk doesn't garbage-collect it
+    root._icon_ref = img 
 
 
 def _set_ico_icon(root, path):
@@ -37,7 +42,7 @@ def apply_window_icon(root: tk.Tk):
             loader(root, path)
             return
         except Exception as e:
-            if report and sys.stderr:  # stderr is None in a --windowed EXE
+            if report and sys.stderr:
                 sys.stderr.write(f"Failed to load {path}: {e}\n")
 
     try:
