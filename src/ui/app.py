@@ -7,6 +7,7 @@ from tkinter import ttk, filedialog, messagebox
 
 from ..constants import APP_TITLE, APP_VERSION, APP_CREDITS
 from ..savefile import try_load
+from ..repair import repair_profile
 from .icon import apply_window_icon
 from .tabs import AchievementsTab, FieldsTab, PlantsTab, StoreTab
 from .theme import Theme, apply_dark_theme
@@ -46,6 +47,7 @@ class App(tk.Tk):
         ttk.Button(bar, text="Reload", command=self.reload_current).pack(side="left")
         ttk.Button(bar, text="Save", command=self.save_current).pack(side="left", padx=6)
         ttk.Button(bar, text="Save as…", command=self.save_current_as).pack(side="left")
+        ttk.Button(bar, text="Repair", command=self.repair_current).pack(side="left", padx=6)
         ttk.Button(bar, text="Quit", command=self.destroy).pack(side="left", padx=(18, 0))
         self.path_lbl = ttk.Label(bar, text="(no file)", style="Dim.TLabel")
         self.path_lbl.pack(side="left", padx=14)
@@ -228,6 +230,15 @@ class App(tk.Tk):
     def save_current(self):
         if not self._require_current():
             return
+        if not messagebox.askokcancel(
+                "Overwrite save file?",
+                "Saving directly overwrites the original file and may "
+                "corrupt it if something goes wrong.\n\n"
+                "A one-time backup (.bak) is kept next to it, but consider "
+                "using 'Save as...' and keeping your own copy of the "
+                "original.\n\nOverwrite now?",
+                icon="warning"):
+            return
         self._safe_commit_fields()
         try:
             self.current.save()
@@ -235,6 +246,27 @@ class App(tk.Tk):
             self._show_save_error(e)
             return
         messagebox.showinfo("Saved", f"Wrote {self.current.path}")
+
+    def repair_current(self):
+        if not self._require_current():
+            return
+        self._safe_commit_fields()
+        fixed, warnings = repair_profile(self.current.profile)
+        idx = self.files.index(self.current)
+        self._load_at(idx)  # refresh every tab from the repaired profile
+        lines = []
+        if fixed:
+            lines.append("Fixed:\n  " + "\n  ".join(fixed))
+        if warnings:
+            lines.append("Warnings:\n  " + "\n  ".join(warnings))
+        if not lines:
+            messagebox.showinfo("Repair", "Nothing to repair: no known "
+                                "corruption patterns found.")
+            return
+        if fixed:
+            lines.append("Changes are in memory only. Use 'Save as…' to write "
+                         "them to a new file.")
+        messagebox.showinfo("Repair", "\n\n".join(lines))
 
     def save_current_as(self):
         if not self._require_current():

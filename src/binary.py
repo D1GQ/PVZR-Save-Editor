@@ -147,6 +147,26 @@ class PottedPlant:
     def __init__(self):
         for name, kind in POTTED_PLANT_FIELDS:
             setattr(self, name, default_for_kind(kind))
+        self.mFutureAttribute = [0]  # empty slots in real saves carry [0]
+
+    @classmethod
+    def fresh(cls):
+        """A newly added plant. Needs non-zero fields so it isn't read back
+        as an empty slot."""
+        p = cls()
+        p.mPlantAge = 1
+        p.mFeedingsPerGrow = 3
+        return p
+
+    def is_blank(self):
+        for name, kind in POTTED_PLANT_FIELDS:
+            v = getattr(self, name)
+            if name == "mFutureAttribute":
+                if any(v):
+                    return False
+            elif v:
+                return False
+        return True
 
     @classmethod
     def deserialize(cls, r: Reader):
@@ -252,14 +272,23 @@ class UserProfile:
                 f"Deserialization consumed {r.p} of {len(data)} bytes "
                 f"({r.remaining()} leftover)")
         p._version = version
+        p._plant_slots = plant_count   # the game stores a fixed-size array
         return p
 
     def serialize(self) -> bytes:
         w = Writer()
-        self.mNumPottedPlants = len(self.mPottedPlant)
+        # Fixed number of slots; used plants first, blanks after. The separate
+        # mNumPottedPlants field counts used plants, not slots.
+        slots = getattr(self, "_plant_slots", len(self.mPottedPlant))
+        used = [pl for pl in self.mPottedPlant if not pl.is_blank()]
+        if len(used) > slots:
+            raise ValueError(f"{len(used)} potted plants but the save has "
+                             f"only {slots} slots")
+        plants = used + [PottedPlant() for _ in range(slots - len(used))]
+        self.mNumPottedPlants = len(used)
         _write_fields(self, w, _FIELDS_BEFORE_PLANTS)
-        w.i32(len(self.mPottedPlant))
-        for plant in self.mPottedPlant:
+        w.i32(len(plants))
+        for plant in plants:
             plant.serialize(w)
         _write_fields(self, w, _FIELDS_AFTER_PLANTS)
         return w.getvalue()

@@ -161,7 +161,13 @@ class PlantsTab(ttk.Frame):
     def _add_plant(self):
         if self.current_profile is None:
             return
-        self.current_profile.mPottedPlant.append(PottedPlant())
+        plants = self.current_profile.mPottedPlant
+        blank = next((i for i, p in enumerate(plants) if p.is_blank()), None)
+        new = PottedPlant.fresh()
+        if blank is None:
+            messagebox.showinfo("Full", "All plant slots are in use.")
+            return
+        plants[blank] = new
         self.refresh()
         kids = self.tree.get_children()
         if kids:
@@ -171,7 +177,7 @@ class PlantsTab(ttk.Frame):
         i = self._selected_index()
         if i is None or self.current_profile is None:
             return
-        del self.current_profile.mPottedPlant[i]
+        self.current_profile.mPottedPlant[i] = PottedPlant()  # keep slot count
         self.refresh()
 
     def _edit_selected(self):
@@ -396,10 +402,12 @@ class AchievementsTab(ttk.Frame):
     @staticmethod
     def _collect(mapping, template):
         """Template list (padded as needed) with the checkboxes applied on top."""
-        size = max(max(mapping, default=-1) + 1, len(template))
-        out = list(template) + [False] * (size - len(template))
+        # The game's array has a fixed length: never grow it, even if the
+        # enum lists more entries than the file has.
+        out = list(template)
         for value, var in mapping.items():
-            out[value] = bool(var.get())
+            if 0 <= value < len(out):
+                out[value] = bool(var.get())
         return out
 
     def commit(self):
